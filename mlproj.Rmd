@@ -16,47 +16,58 @@ Load data and take care of NA values
 library(lattice)
 library(ggplot2)
 library(caret)
+library(randomForest)
 
-trainDataRaw <-read.csv("pml-training.csv", header=T, sep=",", as.is=TRUE, na.strings=c("","#DIV/0!","NA"))
-problemDataRaw <-read.csv("pml-testing.csv", header=T, sep=",", as.is=TRUE, na.strings=c("","#DIV/0!","NA"))
+trainDataRaw <-read.csv("pml-training.csv", header=T, sep=",", na.strings=c("","#DIV/0!","NA"))
+problemDataRaw <-read.csv("pml-testing.csv", header=T, sep=",", na.strings=c("","#DIV/0!","NA"))
 ```
 
-### Only look at data related to arm
+### Only look at data related to arm and Subtitute NA with Zero for easier processing
 This simplication seems sufficient to for predication and removes a lot of factor variables that's hard to use.
 ```{r}
 trainData <- trainDataRaw[,grepl("arm|classe", names(trainDataRaw))]
 problemData <- problemDataRaw[,grepl("arm|problem_id", names(problemDataRaw))]
-```
 
-### Subtitute NA with Zero for easier processing
-```{r}
 trainData[is.na(trainData)] <- 0
 problemData[is.na(problemData)] <- 0
 ```
 
-## Divide Training Data into Training and Testing
 
-```{r}
-trainIndex = createDataPartition(trainData$classe, p = 0.8, list=FALSE)
-trainSet = trainData[trainIndex,]
-testSet = trainData[-trainIndex,]
-```
+## Train and Cross validate
 
-## Train from TrainSet Using Random Forest
-
+### do training with cross validate
 ```{r eval=FALSE}
-trainSetInput = trainSet[,!(names(trainSet) == "classe")]
-trainSetOutput = trainSet$classe
-
 set.seed(7)
-model = randomForest(y=trainSetOutput, x=trainSetInput, ntree=100)
+
+train_control <- trainControl(method="cv", number=4)
+
+model = train(classe ~ ., data=trainSet, model="rpart", trControl=train_control, ntree=100)
 
 ```
 
-### In Sample Accuracy
+### show model
+this include in sample and out of sample comparion
+```{r eval=FALSE}
+model
+```
+Random Forest 
 
+15699 samples
+   76 predictor
+    5 classes: 'A', 'B', 'C', 'D', 'E' 
 
-### Out of Sample Accurancy
+No pre-processing
+Resampling: Cross-Validated (4 fold) 
 
+Summary of sample sizes: 11774, 11774, 11774, 11775 
 
+Resampling results across tuning parameters:
+
+  mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+   2    0.6668590  0.5742260  0.013579005  0.017540566
+  39    0.9661765  0.9572042  0.003461471  0.004379962
+  76    0.9543285  0.9422136  0.002630455  0.003328449
+
+Accuracy was used to select the optimal model using  the largest value.
+The final value used for the model was mtry = 39. 
 

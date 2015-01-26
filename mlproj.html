@@ -70,39 +70,44 @@ library(ggplot2)</code></pre>
 <pre><code>## Warning: package 'ggplot2' was built under R version 3.0.3</code></pre>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Warning: package 'caret' was built under R version 3.0.3</code></pre>
-<pre class="r"><code>trainDataRaw &lt;-read.csv(&quot;pml-training.csv&quot;, header=T, sep=&quot;,&quot;, as.is=TRUE, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))
-problemDataRaw &lt;-read.csv(&quot;pml-testing.csv&quot;, header=T, sep=&quot;,&quot;, as.is=TRUE, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))</code></pre>
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## Warning: package 'randomForest' was built under R version 3.0.3</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>trainDataRaw &lt;-read.csv(&quot;pml-training.csv&quot;, header=T, sep=&quot;,&quot;, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))
+problemDataRaw &lt;-read.csv(&quot;pml-testing.csv&quot;, header=T, sep=&quot;,&quot;, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))</code></pre>
 </div>
-<div id="only-look-at-data-related-to-arm" class="section level3">
-<h3>Only look at data related to arm</h3>
+<div id="only-look-at-data-related-to-arm-and-subtitute-na-with-zero-for-easier-processing" class="section level3">
+<h3>Only look at data related to arm and Subtitute NA with Zero for easier processing</h3>
 <p>This simplication seems sufficient to for predication and removes a lot of factor variables that’s hard to use.</p>
 <pre class="r"><code>trainData &lt;- trainDataRaw[,grepl(&quot;arm|classe&quot;, names(trainDataRaw))]
-problemData &lt;- problemDataRaw[,grepl(&quot;arm|problem_id&quot;, names(problemDataRaw))]</code></pre>
-</div>
-<div id="subtitute-na-with-zero-for-easier-processing" class="section level3">
-<h3>Subtitute NA with Zero for easier processing</h3>
-<pre class="r"><code>trainData[is.na(trainData)] &lt;- 0
+problemData &lt;- problemDataRaw[,grepl(&quot;arm|problem_id&quot;, names(problemDataRaw))]
+
+trainData[is.na(trainData)] &lt;- 0
 problemData[is.na(problemData)] &lt;- 0</code></pre>
 </div>
 </div>
-<div id="divide-training-data-into-training-and-testing" class="section level2">
-<h2>Divide Training Data into Training and Testing</h2>
-<pre class="r"><code>trainIndex = createDataPartition(trainData$classe, p = 0.8, list=FALSE)
-trainSet = trainData[trainIndex,]
-testSet = trainData[-trainIndex,]</code></pre>
-</div>
-<div id="train-from-trainset-using-random-forest" class="section level2">
-<h2>Train from TrainSet Using Random Forest</h2>
-<pre class="r"><code>trainSetInput = trainSet[,!(names(trainSet) == &quot;classe&quot;)]
-trainSetOutput = trainSet$classe
+<div id="train-and-cross-validate" class="section level2">
+<h2>Train and Cross validate</h2>
+<div id="do-training-with-cross-validate" class="section level3">
+<h3>do training with cross validate</h3>
+<pre class="r"><code>set.seed(7)
 
-set.seed(7)
-model = randomForest(y=trainSetOutput, x=trainSetInput, ntree=100)</code></pre>
-<div id="in-sample-accuracy" class="section level3">
-<h3>In Sample Accuracy</h3>
+train_control &lt;- trainControl(method=&quot;cv&quot;, number=4)
+
+model = train(classe ~ ., data=trainSet, model=&quot;rpart&quot;, trControl=train_control, ntree=100)</code></pre>
 </div>
-<div id="out-of-sample-accurancy" class="section level3">
-<h3>Out of Sample Accurancy</h3>
+<div id="show-model" class="section level3">
+<h3>show model</h3>
+<p>this include in sample and out of sample comparion</p>
+<pre class="r"><code>model</code></pre>
+<p>Random Forest</p>
+<p>15699 samples 76 predictor 5 classes: ‘A’, ‘B’, ‘C’, ‘D’, ‘E’</p>
+<p>No pre-processing Resampling: Cross-Validated (4 fold)</p>
+<p>Summary of sample sizes: 11774, 11774, 11774, 11775</p>
+<p>Resampling results across tuning parameters:</p>
+<p>mtry Accuracy Kappa Accuracy SD Kappa SD<br /> 2 0.6668590 0.5742260 0.013579005 0.017540566 39 0.9661765 0.9572042 0.003461471 0.004379962 76 0.9543285 0.9422136 0.002630455 0.003328449</p>
+<p>Accuracy was used to select the optimal model using the largest value. The final value used for the model was mtry = 39.</p>
 </div>
 </div>
 </div>

@@ -1,0 +1,62 @@
+# Predicting User Activity from Data
+
+## Summary
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. 
+
+We have data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+The goal of our project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+
+## Getting and Cleaning Data
+
+###
+Load data and take care of NA values
+
+```{r}
+library(lattice)
+library(ggplot2)
+library(caret)
+
+trainDataRaw <-read.csv("pml-training.csv", header=T, sep=",", as.is=TRUE, na.strings=c("","#DIV/0!","NA"))
+problemDataRaw <-read.csv("pml-testing.csv", header=T, sep=",", as.is=TRUE, na.strings=c("","#DIV/0!","NA"))
+```
+
+### Only look at data related to arm
+This simplication seems sufficient to for predication and removes a lot of factor variables that's hard to use.
+```{r}
+trainData <- trainDataRaw[,grepl("arm|classe", names(trainDataRaw))]
+problemData <- problemDataRaw[,grepl("arm|problem_id", names(problemDataRaw))]
+```
+
+### Subtitute NA with Zero for easier processing
+```{r}
+trainData[is.na(trainData)] <- 0
+problemData[is.na(problemData)] <- 0
+```
+
+## Divide Training Data into Training and Testing
+
+```{r}
+trainIndex = createDataPartition(trainData$classe, p = 0.8, list=FALSE)
+trainSet = trainData[trainIndex,]
+testSet = trainData[-trainIndex,]
+```
+
+## Train from TrainSet Using Random Forest
+
+```{r eval=FALSE}
+trainSetInput = trainSet[,!(names(trainSet) == "classe")]
+trainSetOutput = trainSet$classe
+
+set.seed(7)
+model = randomForest(y=trainSetOutput, x=trainSetInput, ntree=100)
+
+```
+
+### In Sample Accuracy
+
+
+### Out of Sample Accurancy
+
+
+

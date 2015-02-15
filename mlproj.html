@@ -52,34 +52,30 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 
 
-<div id="predicting-user-activity-from-data" class="section level1">
-<h1>Predicting User Activity from Data</h1>
+<div id="predicting-how-well-user-performed-activities-from-data-with-machine-learning" class="section level1">
+<h1>Predicting How Well User Performed Activities from Data With Machine Learning</h1>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.</p>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement â a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.</p>
 <p>We have data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
-<p>The goal of our project is to predict the manner in which they did the exercise. This is the “classe” variable in the training set.</p>
+<p>The goal of this project is to predict the manner in which the users did the exercise. This is the “classe” variable in the training set.</p>
 </div>
 <div id="getting-and-cleaning-data" class="section level2">
 <h2>Getting and Cleaning Data</h2>
-<div id="section" class="section level3">
-<h3></h3>
-<p>Load data and take care of NA values</p>
+<div id="load-and-clean-data" class="section level3">
+<h3>Load and Clean Data</h3>
+<p>Load data and convert invalid values to NA</p>
 <pre class="r"><code>library(lattice)
-library(ggplot2)</code></pre>
-<pre><code>## Warning: package 'ggplot2' was built under R version 3.0.3</code></pre>
-<pre class="r"><code>library(caret)</code></pre>
-<pre><code>## Warning: package 'caret' was built under R version 3.0.3</code></pre>
-<pre class="r"><code>library(randomForest)</code></pre>
-<pre><code>## Warning: package 'randomForest' was built under R version 3.0.3</code></pre>
-<pre><code>## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>trainDataRaw &lt;-read.csv(&quot;pml-training.csv&quot;, header=T, sep=&quot;,&quot;, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))
+library(ggplot2)
+library(caret)
+library(randomForest)
+
+trainDataRaw &lt;-read.csv(&quot;pml-training.csv&quot;, header=T, sep=&quot;,&quot;, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))
 problemDataRaw &lt;-read.csv(&quot;pml-testing.csv&quot;, header=T, sep=&quot;,&quot;, na.strings=c(&quot;&quot;,&quot;#DIV/0!&quot;,&quot;NA&quot;))</code></pre>
 </div>
-<div id="only-look-at-data-related-to-arm-and-subtitute-na-with-zero-for-easier-processing" class="section level3">
-<h3>Only look at data related to arm and Subtitute NA with Zero for easier processing</h3>
-<p>This simplication seems sufficient to for predication and removes a lot of factor variables that’s hard to use.</p>
+<div id="data-selection-for-prediction" class="section level3">
+<h3>Data Selection for Prediction</h3>
+<p>Only look at data related to arm and Subtitute NA with Zero for easier processing. This simplication is sufficient for predication, and it removes a lot of factor variables that’s hard to use.</p>
 <pre class="r"><code>trainData &lt;- trainDataRaw[,grepl(&quot;arm|classe&quot;, names(trainDataRaw))]
 problemData &lt;- problemDataRaw[,grepl(&quot;arm|problem_id&quot;, names(problemDataRaw))]
 
@@ -87,27 +83,44 @@ trainData[is.na(trainData)] &lt;- 0
 problemData[is.na(problemData)] &lt;- 0</code></pre>
 </div>
 </div>
-<div id="train-and-cross-validate" class="section level2">
-<h2>Train and Cross validate</h2>
-<div id="do-training-with-cross-validate" class="section level3">
-<h3>do training with cross validate</h3>
+<div id="training-and-cross-validation" class="section level2">
+<h2>Training and Cross Validation</h2>
+<div id="training-on-random-forest-with-cross-validation" class="section level3">
+<h3>Training on Random Forest with Cross Validation</h3>
 <pre class="r"><code>set.seed(7)
 
 train_control &lt;- trainControl(method=&quot;cv&quot;, number=4)
 
 model = train(classe ~ ., data=trainSet, model=&quot;rpart&quot;, trControl=train_control, ntree=100)</code></pre>
 </div>
-<div id="show-model" class="section level3">
-<h3>show model</h3>
-<p>this include in sample and out of sample comparion</p>
+<div id="model-after-training" class="section level3">
+<h3>Model after Training</h3>
+<p>Model shows in sample and out of sample comparion</p>
 <pre class="r"><code>model</code></pre>
-<p>Random Forest</p>
-<p>15699 samples 76 predictor 5 classes: ‘A’, ‘B’, ‘C’, ‘D’, ‘E’</p>
-<p>No pre-processing Resampling: Cross-Validated (4 fold)</p>
-<p>Summary of sample sizes: 11774, 11774, 11774, 11775</p>
-<p>Resampling results across tuning parameters:</p>
-<p>mtry Accuracy Kappa Accuracy SD Kappa SD<br /> 2 0.6668590 0.5742260 0.013579005 0.017540566 39 0.9661765 0.9572042 0.003461471 0.004379962 76 0.9543285 0.9422136 0.002630455 0.003328449</p>
-<p>Accuracy was used to select the optimal model using the largest value. The final value used for the model was mtry = 39.</p>
+<pre><code>Random Forest 
+
+15699 samples
+   76 predictor
+    5 classes: 'A', 'B', 'C', 'D', 'E' 
+
+No pre-processing
+Resampling: Cross-Validated (4 fold) 
+
+Summary of sample sizes: 11774, 11774, 11774, 11775 
+
+Resampling results across tuning parameters:
+
+  mtry  Accuracy   Kappa      Accuracy SD  Kappa SD   
+   2    0.6668590  0.5742260  0.013579005  0.017540566
+  39    0.9661765  0.9572042  0.003461471  0.004379962
+  76    0.9543285  0.9422136  0.002630455  0.003328449
+
+Accuracy was used to select the optimal model using  the largest value.
+The final value used for the model was mtry = 39. </code></pre>
+</div>
+<div id="out-of-sample-accuracy" class="section level3">
+<h3>Out of Sample Accuracy</h3>
+<p>Base on the results above, Out of Sample Accuracy should be at 96.6 %</p>
 </div>
 </div>
 </div>

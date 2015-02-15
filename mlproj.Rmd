@@ -1,18 +1,18 @@
-# Predicting User Activity from Data
+# Predicting How Well User Performed Activities from Data With Machine Learning
 
 ## Summary
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. 
 
 We have data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
 
-The goal of our project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+The goal of this project is to predict the manner in which the users did the exercise. This is the "classe" variable in the training set. 
 
 ## Getting and Cleaning Data
 
-###
-Load data and take care of NA values
+### Load and Clean Data
+Load data and convert invalid values to NA
 
-```{r}
+```{r eval=FALSE}
 library(lattice)
 library(ggplot2)
 library(caret)
@@ -22,9 +22,12 @@ trainDataRaw <-read.csv("pml-training.csv", header=T, sep=",", na.strings=c("","
 problemDataRaw <-read.csv("pml-testing.csv", header=T, sep=",", na.strings=c("","#DIV/0!","NA"))
 ```
 
-### Only look at data related to arm and Subtitute NA with Zero for easier processing
-This simplication seems sufficient to for predication and removes a lot of factor variables that's hard to use.
-```{r}
+### Data Selection for Prediction
+
+Only look at data related to arm and Subtitute NA with Zero for easier processing. 
+This simplication is sufficient for predication, and it removes a lot of factor variables that's hard to use.
+
+```{r eval=FALSE}
 trainData <- trainDataRaw[,grepl("arm|classe", names(trainDataRaw))]
 problemData <- problemDataRaw[,grepl("arm|problem_id", names(problemDataRaw))]
 
@@ -33,9 +36,10 @@ problemData[is.na(problemData)] <- 0
 ```
 
 
-## Train and Cross validate
+## Training and Cross Validation
 
-### do training with cross validate
+### Training on Random Forest with Cross Validation
+
 ```{r eval=FALSE}
 set.seed(7)
 
@@ -45,10 +49,14 @@ model = train(classe ~ ., data=trainSet, model="rpart", trControl=train_control,
 
 ```
 
-### show model
-this include in sample and out of sample comparion
+### Model after Training
+
+Model shows in sample and out of sample comparion
+
 ```{r eval=FALSE}
 model
+```
+
 ```
 Random Forest 
 
@@ -70,4 +78,11 @@ Resampling results across tuning parameters:
 
 Accuracy was used to select the optimal model using  the largest value.
 The final value used for the model was mtry = 39. 
+```
+
+### Out of Sample Accuracy
+
+Base on the results above, Out of Sample Accuracy should be at 96.6 %
+
+
 
